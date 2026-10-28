@@ -19,6 +19,7 @@ it("serializes concurrent credential updates with a real Postgres advisory lock"
   expect(result).toEqual({ count: 4, host });
 });
 it("releases its advisory lock after an operation fails", async () => {
+  const count = await withVault(async vault => vault.accounts.length);
   await expect(withVault(async () => { throw new Error("test failure"); })).rejects.toThrow("test failure");
-  await expect(withVault(async vault => vault.accounts.length)).resolves.toBe(4);
+  await expect(withVault(async vault => vault.accounts.length)).resolves.toBe(count);
 });

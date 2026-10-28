@@ -1,4 +1,5 @@
 import "server-only";
+import { prisma } from "@/lib/prisma";
 import { createCipheriv, createDecipheriv, randomBytes, randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, writeFile, chmod } from "node:fs/promises";
 import { join } from "node:path";
@@ -41,7 +42,6 @@ export async function readVault(dir = directory()): Promise<Vault> {
 // All production readers/writers, including refresh and disconnect, use this cross-process lock.
 // A transaction-scoped Postgres advisory lock has automatic crash cleanup; no tokens enter Postgres.
 export async function withVault<T>(fn: (vault: Vault) => Promise<T>): Promise<T> {
-  const { prisma } = await import("@/lib/prisma");
   return prisma.$transaction(async tx => {
     await tx.$queryRaw`SELECT pg_advisory_xact_lock(742019310)::text`;
     const vault = await readVault();
