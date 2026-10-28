@@ -124,3 +124,7 @@ What applies depends on who you run Dossier for, and this isn't legal advice.
 Self-hosting alone doesn't make a deployment compliant. Dossier's code shows what it stores and sends. It can't tell you whether your provider, its terms or your account settings meet what you need.
 
 When someone asks for their data, **Export** in Settings → Your data gives everything Dossier keeps except task data and failed sign-ins, which expire on their own, and the mail from Gmail and the Google account, which belong to the mailbox: the mail is still in Gmail. Deleting an application or **Delete everything** removes data as described [above](#what-deleting-removes).
+
+## ChatGPT Account (this fork)
+
+When selected explicitly, the official ChatGPT OAuth provider sends the same task inputs described above to `https://api.openai.com/v1/responses`, with `store:false` and streamed output. Your plan and workspace policies still apply. OAuth credentials, client registrations, host identity and job-agent consent live in a separate private runtime volume, not Dossier exports or ordinary database backups. The local sign-in helper transfers them directly to your own HTTPS server without storing them on the laptop. See [ChatGPT setup and security](CHATGPT.md).

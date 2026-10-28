@@ -12,7 +12,7 @@ vi.mock("@/lib/prisma", async () => {
   return { prisma: db.client };
 });
 vi.mock("@/lib/time-zone", () => ({ lastKnownTimeZone: async () => "Europe/Berlin" }));
-vi.mock("@/lib/ai/config", () => ({ isAiConfigured: async () => true }));
+vi.mock("@/lib/ai/config", () => ({ loadAiConfig: async () => ({ provider: "LOCAL" }), isAiConfigured: async () => true }));
 vi.mock("@/lib/job-search/config", () => ({
   loadJobSearchConfig: async () => ({ source: "JSEARCH", saved: true, jsearch: { key: "k", host: "openwebninja", keyState: "set" }, adzuna: { appId: "", key: null, keyState: "none" } }),
   credentialsFor: () => ({ key: "k", host: "openwebninja" }),

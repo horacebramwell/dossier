@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { Prisma } from "@/generated/prisma/client";
 import { AgentCandidateStatus } from "@/generated/prisma/enums";
+import { requireAgentAuthorization } from "@/lib/ai/chatgpt-account";
 import { getAiProvider } from "@/lib/ai";
 import { isAiConfigured } from "@/lib/ai/config";
 import { AiError } from "@/lib/ai/errors";
@@ -100,6 +101,7 @@ const newestFirst = (a: FoundPosting, b: FoundPosting) => (b.postedAt ? Date.par
 export async function runAgentScan({ manual }: { manual: boolean }, context: JobContext, now = new Date()): Promise<AgentScanResult> {
   const settings = await loadSettings();
   if (!settings.agentEnabled && !manual) return stopped("The job agent is off.");
+  try { await requireAgentAuthorization(); } catch (e) { if (e instanceof AiError) return stopped(e.message); throw e; }
   const setup = await agentSetupProblem(settings.agentQuery);
   if (setup) return stopped(setup);
   const limit = runLimitProblem(settings.agentRuns, now, { manual: false });
@@ -134,9 +136,11 @@ export async function runAgentScan({ manual }: { manual: boolean }, context: Job
   let queued = 0;
   const kept: string[] = [];
   let problem: string | null = null;
+  let planStopped = false;
   for (const posting of toScore) {
     if (context.signal.aborted) break;
     try {
+      await requireAgentAuthorization();
       const { data, promptVersion } = await scorePosting(
         provider,
         { posting: postingText(posting), title: posting.title, company: posting.company, place: posting.place, remote: posting.remote, salary: posting.salary, profile },
@@ -152,14 +156,17 @@ export async function runAgentScan({ manual }: { manual: boolean }, context: Job
       // Another run kept it first: it's seen either way.
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") continue;
       // One posting that fails doesn't stop the rest.
-      if (error instanceof AiError) problem = error.message;
+      if (error instanceof AiError) {
+        problem = error.message;
+        if (provider.kind === "CHATGPT" && ["rate-limited", "busy", "auth", "config", "model"].includes(error.kind)) { planStopped = true; break; }
+      }
       else if (!context.signal.aborted) logServerError("job agent scoring", error);
     }
   }
 
   // Auto-draft (#197, off by default): the best of this run's, one job each.
   let drafted = 0;
-  if (settings.agentAutoDraft && settings.agentMaxDrafts > 0 && !context.signal.aborted) {
+  if (settings.agentAutoDraft && settings.agentMaxDrafts > 0 && !context.signal.aborted && !planStopped) {
     const best = await prisma.agentCandidate.findMany({
       where: { id: { in: kept }, status: AgentCandidateStatus.SCORED, score: { gte: settings.agentMinScore } },
       orderBy: { score: "desc" },
@@ -179,5 +186,5 @@ export async function runAgentScan({ manual }: { manual: boolean }, context: Job
         : drafted > 0
           ? `${waiting} Preparing ${drafted === 1 ? "a draft for the best one" : `drafts for the best ${drafted}`}.`
           : waiting;
-  return finish({ ...counts, scored, drafted, message });
+  return finish({ ...counts, scored, drafted, message: planStopped ? `${message} ${problem}` : message });
 }

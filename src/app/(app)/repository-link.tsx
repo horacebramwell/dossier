@@ -3,11 +3,11 @@
 import { ArrowUpRight, Star } from "lucide-react";
 
 import { cn } from "@/lib/cn";
-import { REPOSITORY_URL } from "@/lib/releases";
+const REPOSITORY_URL = "https://github.com/horacebramwell/dossier/tree/codex/chatgpt-account";
 
 import { useSidebarCollapsed } from "./sidebar-frame";
 
-const LABEL = "Star on GitHub";
+const LABEL = "Source code · AGPL-3.0";
 
 /** The sidebar's link to Dossier's repository, for credits and support. */
 export function RepositoryLink() {

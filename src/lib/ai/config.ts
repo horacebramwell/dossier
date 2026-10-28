@@ -21,6 +21,7 @@ export type AiConfig = {
 };
 
 export const PROVIDER_DEFAULTS: Record<AiProvider, { baseUrl: string; model: string | null; timeoutSeconds: number }> = {
+  [AiProvider.CHATGPT]: { baseUrl: "https://api.openai.com/v1", model: null, timeoutSeconds: 300 },
   // Generous: a local model on a laptop can take minutes for a cover letter.
   [AiProvider.LOCAL]: { baseUrl: "http://localhost:11434", model: null, timeoutSeconds: 300 },
   [AiProvider.OPENAI]: { baseUrl: "https://api.openai.com/v1", model: null, timeoutSeconds: 120 },
@@ -125,6 +126,11 @@ export async function isAiConfigured(): Promise<boolean> {
 export async function isAiUsable(): Promise<boolean> {
   if (!(await isAiConfigured())) return false;
   const config = await loadAiConfig();
+  if (config.provider === AiProvider.CHATGPT) {
+    const { accountStatus } = await import("./chatgpt-account");
+    const status = await accountStatus();
+    return !!config.model && status.accounts.some(a => a.clientId === status.active && a.connected && a.planAllowed);
+  }
   if (!config.model || config.apiKeyProblem) return false;
   const needsKey = config.provider === AiProvider.ANTHROPIC || config.provider === AiProvider.MISTRAL;
   return !needsKey || Boolean(config.apiKey);

@@ -6,6 +6,7 @@ import { loadAiConfig, type AiConfig } from "./config";
 import { AiError } from "./errors";
 import { providerOption } from "./provider-options";
 import type { AIProvider } from "./provider";
+import { ChatGPTProvider } from "./providers/chatgpt";
 import { AnthropicProvider } from "./providers/anthropic";
 import { LocalProvider } from "./providers/local";
 import { LmStudioProvider } from "./providers/lmstudio";
@@ -20,6 +21,8 @@ export function createProvider(config: AiConfig): AIProvider {
   const { provider, baseUrl, model, apiKey, apiKeyProblem, timeoutMs } = config;
   if (apiKeyProblem && providerOption(provider).apiKey) throw AiError.config(apiKeyProblem);
   switch (provider) {
+    case AiProvider.CHATGPT:
+      return new ChatGPTProvider(model, timeoutMs);
     case AiProvider.LOCAL:
       return new LocalProvider(baseUrl, model, timeoutMs);
     case AiProvider.OPENAI:

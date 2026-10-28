@@ -1,3 +1,5 @@
+> **ChatGPT Account fork:** Maintained at [horacebramwell/dossier](https://github.com/horacebramwell/dossier/tree/codex/chatgpt-account), based on [AienTech/dossier](https://github.com/AienTech/dossier). Original authorship and the AGPL-3.0-only license are preserved. See [ChatGPT setup](CHATGPT.md) for local authorization and personal Dokploy deployment. This is an independently maintained integration of the official OpenAI protocol, not an OpenAI-endorsed Dossier release.
+
 <p align="center">
   <img src="src/app/icon.svg" alt="" width="80" height="80">
 </p>

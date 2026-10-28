@@ -84,6 +84,7 @@ export const PROVIDER_OPTIONS: readonly {
     defaultModel: "mistral-medium-latest",
     apiKey: { label: "API key" },
   },
+  { value: AiProvider.CHATGPT, name: "ChatGPT Account", vendor: "OpenAI", description: "Use your authorized ChatGPT plan without an API key.", tag: "ChatGPT plan · account limits apply", local: false, defaultUrl: "https://api.openai.com/v1", urlPlaceholder: "https://api.openai.com/v1", defaultModel: "", apiKey: null },
 ];
 
 export function providerOption(provider: AiProvider) {

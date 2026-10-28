@@ -15,6 +15,8 @@ import { cn } from "@/lib/cn";
 import { useAutosave } from "@/hooks/use-autosave";
 
 import { listAiModels, saveAiProvider, saveApiKey, testAiConnection } from "./actions";
+import { ChatGPTAccountControls } from "./chatgpt-account-controls";
+import { chatgptModels } from "./chatgpt-actions";
 import { SettingsSectionIntro } from "./settings-screen";
 
 type Connection =
@@ -52,6 +54,14 @@ export function AiProviderSection({ initial }: { initial: AiSettingsView }) {
   const [connection, setConnection] = useState<Connection>({ status: "untested" });
   const [modelList, setModelList] = useState<ModelList>({ loading: true });
   const option = providerOption(provider);
+  const [chatgptCatalog, setChatgptCatalog] = useState<{ slug: string; name: string }[]>([]);
+  const refreshChatGPT = async () => {
+    reloadModels();
+    const result = await chatgptModels({});
+    if (result.ok) setChatgptCatalog(result.data);
+    else setChatgptCatalog([]);
+  };
+  useEffect(() => { if (provider === "CHATGPT") { void chatgptModels({}).then(r => setChatgptCatalog(r.ok ? r.data : [])); } }, [provider]);
 
   const reloadModels = () => {
     setModelList({ loading: true });
@@ -147,7 +157,7 @@ export function AiProviderSection({ initial }: { initial: AiSettingsView }) {
             value={entry.value}
             aria-label={entry.name}
             aria-describedby={`provider-${entry.value}`}
-            className="group flex flex-col gap-1.5 rounded-card border border-line-card bg-card p-[18px] text-left hover:border-line-strong data-[state=checked]:border-primary data-[state=checked]:shadow-[0_0_0_1px_var(--color-primary)]"
+            className="group flex flex-col gap-1.5 rounded-card border border-line-card bg-card p-[18px] text-left hover:border-line-strong data-[state=checked]:border-primary data-[state=checked]:outline data-[state=checked]:outline-primary"
           >
             <span className="flex items-center justify-between gap-2">
               <span className="text-[15px] font-medium">{entry.name}</span>
@@ -174,8 +184,10 @@ export function AiProviderSection({ initial }: { initial: AiSettingsView }) {
         </p>
       )}
 
+      {provider === "CHATGPT" && <ChatGPTAccountControls onChange={() => void refreshChatGPT()} />}
+
       <Card className="grid grid-cols-1 gap-x-[18px] gap-y-5 sm:grid-cols-2">
-        <Input
+        {provider !== "CHATGPT" && <Input
           className="sm:col-span-2"
           label="Server address"
           inputClassName="font-mono text-[13.5px]"
@@ -196,7 +208,7 @@ export function AiProviderSection({ initial }: { initial: AiSettingsView }) {
               ? "Start the address with http:// or https://."
               : option.urlHint
           }
-        />
+        />}
 
         <div className="flex flex-col gap-2.5">
           <Select
@@ -215,12 +227,12 @@ export function AiProviderSection({ initial }: { initial: AiSettingsView }) {
             hint={!modelList.loading && modelList.problem ? `Couldn't list the models: ${modelList.problem}` : undefined}
           >
             {!model && !otherModel && <option value="">{modelList.loading ? "Loading models…" : "Choose a model"}</option>}
-            {models.map((name) => (
+            {(provider === "CHATGPT" ? chatgptCatalog.map(m => m.slug) : models).map((name) => (
               <option key={name} value={name}>
-                {name}
+                {provider === "CHATGPT" ? chatgptCatalog.find(m => m.slug === name)?.name || name : name}
               </option>
             ))}
-            <option value={OTHER_MODEL}>Other model…</option>
+            {provider !== "CHATGPT" && <option value={OTHER_MODEL}>Other model…</option>}
           </Select>
           {otherModel && (
             <Input
@@ -274,7 +286,7 @@ export function AiProviderSection({ initial }: { initial: AiSettingsView }) {
         ) : (
           <div className="flex flex-col gap-[7px]">
             <span className="text-label text-muted">API key</span>
-            <p className="py-[11px] text-sm text-muted">Not needed for a local model</p>
+            <p className="py-[11px] text-sm text-muted">{provider === "CHATGPT" ? "Not needed · authorized ChatGPT plan" : "Not needed for a local model"}</p>
           </div>
         )}
 

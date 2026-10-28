@@ -49,6 +49,7 @@ export const saveAiProvider = action(
     model: z.string().trim().max(200),
   }),
   async ({ provider, baseUrl, model }) => {
+    if (provider === AiProvider.CHATGPT) baseUrl = "https://api.openai.com/v1";
     const current = await loadSettings();
     await saveSettings({
       provider,
@@ -70,6 +71,7 @@ export const saveApiKey = action(
     ]),
   }),
   async ({ provider, change }) => {
+    if (provider === AiProvider.CHATGPT) throw new ActionError("ChatGPT Account uses OAuth, not an API key.");
     const current = await loadSettings();
     await saveSettings({
       apiKeyEnc: applyApiKeyChange(current.apiKeyEnc, change),

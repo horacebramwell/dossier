@@ -1,0 +1,38 @@
+name: ChatGPT integration verification
+on:
+  push:
+    branches: [codex/chatgpt-account]
+permissions:
+  contents: read
+jobs:
+  affected-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: dossier_test
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U postgres -d dossier_test" --health-interval 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dossier_test
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/dossier_test
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - run: corepack enable
+      - run: yarn install --immutable
+      - run: yarn prisma generate
+      - run: yarn lint
+      - run: yarn typecheck
+      - name: AI and affected UI regression tests
+        run: yarn test --project node --project dom src/lib/ai src/proxy.test.ts 'src/app/(app)/settings/ai-provider-section.test.tsx' 'src/app/(app)/repository-link.test.tsx'
+      - name: Persisted settings and job-agent regression tests
+        run: yarn test --project db src/lib/agent 'src/app/(app)/settings/actions.db.test.ts'

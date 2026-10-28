@@ -56,3 +56,6 @@ next-env.d.ts
 /e2e/.auth/
 /playwright-report/
 /test-results/
+
+# Bundled local sign-in helper (built from source)
+/public/chatgpt-sign-in.mjs

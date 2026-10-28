@@ -5,7 +5,7 @@
   "license": "AGPL-3.0-only",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "yarn build:chatgpt-helper && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "hash-password": "tsx scripts/hash-password.ts"
+    "hash-password": "tsx scripts/hash-password.ts",
+    "build:chatgpt-helper": "esbuild scripts/chatgpt-sign-in.ts --bundle --platform=node --format=esm --target=node22 --outfile=public/chatgpt-sign-in.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

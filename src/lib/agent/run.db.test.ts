@@ -55,7 +55,7 @@ vi.mock("@/lib/job-search/config", () => ({
   credentialsFor: () => ({ key: "jsearch-key", host: "openwebninja" }),
   requestContext: () => ({}),
 }));
-vi.mock("@/lib/ai/config", () => ({ isAiConfigured: async () => fake.ai }));
+vi.mock("@/lib/ai/config", () => ({ loadAiConfig: async () => ({ provider: "LOCAL" }), isAiConfigured: async () => fake.ai }));
 vi.mock("@/lib/ai", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/ai")>()),
   getAiProvider: async () =>

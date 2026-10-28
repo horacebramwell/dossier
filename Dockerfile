@@ -80,7 +80,9 @@ COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
 # Backups and export zips (mount a volume here); the server's own cache.
-RUN mkdir -p /data .next/cache && chown node:node /data .next/cache
+RUN mkdir -p /data /var/lib/dossier-chatgpt .next/cache && chown node:node /data /var/lib/dossier-chatgpt .next/cache
+# Separate private volume: OAuth credentials must never enter database or /data backups.
+ENV DOSSIER_CHATGPT_DIR=/var/lib/dossier-chatgpt
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \

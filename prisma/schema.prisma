@@ -297,6 +297,8 @@ model Theme {
 }
 
 enum AiProvider {
+  /// Official Sign in with ChatGPT plan usage (no API key).
+  CHATGPT
   /// Ollama or llama.cpp on the user's own hardware.
   LOCAL
   /// Any server that speaks the OpenAI chat completions API.

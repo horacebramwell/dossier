@@ -1,5 +1,6 @@
 import "server-only";
 
+import { requireAgentAuthorization } from "@/lib/ai/chatgpt-account";
 import { z } from "zod";
 
 import type { AgentCandidate, Prisma } from "@/generated/prisma/client";
@@ -64,6 +65,7 @@ function detailsFrom(extracted: Extracted): ApplicationDetails {
  * sends it back to SCORED with the error to show. Returns the application.
  */
 export async function draftCandidate(candidateId: string, context: JobContext): Promise<string> {
+  await requireAgentAuthorization();
   const candidate = await prisma.agentCandidate.findUnique({ where: { id: candidateId } });
   if (!candidate) throw new ActionError("That posting is no longer in the agent's queue.");
   if (candidate.status === AgentCandidateStatus.DRAFTED && candidate.applicationId) return candidate.applicationId;
@@ -85,6 +87,7 @@ export async function draftCandidate(candidateId: string, context: JobContext): 
     const reading = await readPostingJob.run({ posting }, context);
     await context.step(`Writing the draft for ${name}`);
     const settings = await loadSettings();
+    await requireAgentAuthorization();
     const documents = await writeDocumentsJob.run(
       { readJobId: context.id, posting, extracted: reading.extracted, match: reading.match, tone: settings.defaultTone, note: "" },
       context,
