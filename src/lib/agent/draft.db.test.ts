@@ -16,6 +16,8 @@ import { candidateData } from "./candidates";
 import { approveCandidate, dismissCandidate, draftCandidate, restoreCandidate } from "./draft";
 import { resetInterruptedDrafts } from "./schedule";
 
+vi.mock("@/lib/ai/config", () => ({ loadAiConfig: async () => ({ provider: "LOCAL" }) }));
+
 const db = vi.hoisted(() => ({ client: undefined as ReturnType<typeof createTestClient> | undefined }));
 vi.mock("@/lib/prisma", async () => {
   const { createTestClient } = await import("@/test/db");
