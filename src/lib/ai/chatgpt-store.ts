@@ -43,7 +43,7 @@ export async function readVault(dir = directory()): Promise<Vault> {
 export async function withVault<T>(fn: (vault: Vault) => Promise<T>): Promise<T> {
   const { prisma } = await import("@/lib/prisma");
   return prisma.$transaction(async tx => {
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(742019310)`;
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(742019310)::text`;
     const vault = await readVault();
     const result = await fn(vault);
     await writeVault(vault);
