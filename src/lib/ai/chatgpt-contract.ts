@@ -9,7 +9,7 @@ export const ISSUER = "https://auth.openai.com";
 export const RESOURCE = "https://api.openai.com/v1";
 export const PLAN_SCOPE = "chatgpt.tokens.use.direct";
 export const SCOPES = `openid profile email offline_access resource.invoke ${PLAN_SCOPE}`;
-export type Attempt = { state: string; nonce: string; verifier: string; redirectUri: string; hostId: string; clientId?: string; subject?: string; idToken?: string };
+export type Attempt = { state: string; nonce: string; verifier: string; redirectUri: string; hostId: string; clientId?: string; subject?: string };
 export const randomSecret = () => randomBytes(32).toString("base64url");
 export function equalSecret(a: string, b: string): boolean {
   const left = Buffer.from(a); const right = Buffer.from(b);
@@ -22,7 +22,6 @@ export function authorizationUrl(attempt: Attempt): string {
     state: attempt.state, nonce: attempt.nonce, code_challenge_method: "S256",
     code_challenge: createHash("sha256").update(attempt.verifier).digest("base64url"),
     ...(attempt.clientId ? {} : { agent_name_hint: "Dossier" }),
-    ...(attempt.idToken ? { id_token_hint: attempt.idToken } : {}),
   }).toString();
   return url.toString();
 }

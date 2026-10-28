@@ -33,6 +33,7 @@ describe("ChatGPT credential lifecycle", () => {
     fake.vault.accounts[0].expiresAt = 0; fake.grant.mockRejectedValue(new TokenError(false));
     await expect(accessToken()).rejects.toThrow("retained"); expect(fake.vault.accounts[0].refreshToken).toBe("refresh");
   });
+  it("rejects a switched account for a running task", async () => { await expect(accessToken(undefined, "other")).rejects.toThrow("account changed"); });
   it("does not infer plan permission from identity alone", async () => {
     fake.vault.accounts[0].scopes = []; await expect(accessToken()).rejects.toThrow("permission");
     expect(fake.grant).not.toHaveBeenCalled();

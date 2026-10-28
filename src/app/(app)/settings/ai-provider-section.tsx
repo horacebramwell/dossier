@@ -184,7 +184,7 @@ export function AiProviderSection({ initial }: { initial: AiSettingsView }) {
         </p>
       )}
 
-      {provider === "CHATGPT" && <ChatGPTAccountControls onChange={() => void refreshChatGPT()} />}
+      {provider === "CHATGPT" && <ChatGPTAccountControls onChange={() => { setModel(""); changed(); setSaveNow(count => count + 1); void refreshChatGPT(); }} />}
 
       <Card className="grid grid-cols-1 gap-x-[18px] gap-y-5 sm:grid-cols-2">
         {provider !== "CHATGPT" && <Input
@@ -234,6 +234,7 @@ export function AiProviderSection({ initial }: { initial: AiSettingsView }) {
             ))}
             {provider !== "CHATGPT" && <option value={OTHER_MODEL}>Other model…</option>}
           </Select>
+          {provider === "CHATGPT" && <Button variant="text" size="sm" onClick={() => void refreshChatGPT()}>Refresh models</Button>}
           {otherModel && (
             <Input
               label="Model name"

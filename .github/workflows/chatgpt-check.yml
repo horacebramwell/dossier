@@ -33,6 +33,6 @@ jobs:
       - run: yarn lint
       - run: yarn typecheck
       - name: AI and affected UI regression tests
-        run: yarn test --project node --project dom src/lib/ai src/proxy.test.ts 'src/app/(app)/settings/ai-provider-section.test.tsx' 'src/app/(app)/repository-link.test.tsx'
+        run: yarn test --project node --project dom src/lib/ai src/proxy.test.ts 'src/app/(app)/settings/ai-provider-section.test.tsx' 'src/app/(app)/repository-link.test.tsx' 'src/app/(app)/settings/chatgpt-account-controls.test.tsx' src/app/api/chatgpt
       - name: Persisted settings and job-agent regression tests
         run: yarn test --project db src/lib/agent 'src/app/(app)/settings/actions.db.test.ts'

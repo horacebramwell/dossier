@@ -26,8 +26,7 @@ function requirePairing(vault: Awaited<Parameters<Parameters<typeof withVault>[0
 export async function pairingConfiguration(secret: string) {
   return withVault(async vault => {
     const p = requirePairing(vault, secret);
-    const account = vault.accounts.find(a => a.clientId === p.clientId);
-    return { hostId: vault.hostId, nonce: p.nonce, clientId: p.clientId, subject: p.subject, idToken: account?.idToken || undefined };
+    return { hostId: vault.hostId, nonce: p.nonce, clientId: p.clientId, subject: p.subject };
   });
 }
 export const importSchema = z.object({ clientId: z.string().min(1).max(300).refine(id => id !== "dynamic_agent_client"), tokens: tokenSchema });
@@ -57,10 +56,11 @@ export async function requireAgentAuthorization() {
   const allowed = await withVault(async vault => { const a = activeAccount(vault); return !!a?.agentAllowed && !!a.accessToken && a.scopes.includes(PLAN_SCOPE); });
   if (!allowed) throw AiError.config("Authorize the job agent to use your ChatGPT plan in Settings → AI provider before running it.");
 }
-export async function accessToken(signal?: AbortSignal): Promise<{ token: string; clientId: string }> {
+export async function accessToken(signal?: AbortSignal, expectedClientId?: string): Promise<{ token: string; clientId: string }> {
   const result = await withVault(async vault => {
     signal?.throwIfAborted();
     const account = activeAccount(vault);
+    if (expectedClientId && account?.clientId !== expectedClientId) return { error: "The active ChatGPT account changed. Retry the task with the selected account." };
     if (!account?.accessToken) return { error: "Connect your ChatGPT account in Settings → AI provider." };
     if (!account.scopes.includes(PLAN_SCOPE)) return { error: "ChatGPT plan permission is disabled. Reconnect and authorize plan usage." };
     if (account.expiresAt <= Date.now() + 60_000) {
@@ -82,8 +82,8 @@ export async function accessToken(signal?: AbortSignal): Promise<{ token: string
   if ("error" in result) throw AiError.config(result.error!);
   signal?.throwIfAborted(); return result;
 }
-export async function accountModels(signal?: AbortSignal) {
-  const { token } = await accessToken(signal);
+export async function accountModels(signal?: AbortSignal, expectedClientId?: string) {
+  const { token } = await accessToken(signal, expectedClientId);
   const response = await fetch(`${RESOURCE}/models`, { headers: { Authorization: `Bearer ${token}` }, redirect: "error", cache: "no-store", signal: signal || AbortSignal.timeout(20_000) });
   if (!response.ok) throw inferenceError(response.status);
   return catalogModels(await response.json());
